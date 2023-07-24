@@ -13,6 +13,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     @IBOutlet var table: UITableView!
     
+    var currentWeather : CurrentWeather?
+    var currentWeatherCondition: String = ""
     var weatherResponse : WeatherData?
     let locationManager = CLLocationManager()
     var currentLocation : CLLocation?
@@ -27,6 +29,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         table.register(WeatherTableViewCell.nib(), forCellReuseIdentifier: WeatherTableViewCell.identifier)
         table.delegate = self
         table.dataSource = self
+        
+        view.backgroundColor = UIColor(red: 45/255.0, green: 144/255.0, blue: 228/255.0, alpha: 1.0)
+        table.backgroundColor = UIColor(red: 45/255.0, green: 144/255.0, blue: 228/255.0, alpha: 1.0)
     }
     
     
@@ -88,10 +93,13 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             }
             
             self.models.append(contentsOf: entries)
+            guard let currentWeatherCondition = weatherResponse.current?.weather.first?.main else { return }
+            self.currentWeatherCondition = currentWeatherCondition
+            let current = weatherResponse.current
+            self.currentWeather = current
             
             DispatchQueue.main.async {
                 self.table.reloadData()
-                
                 self.table.tableHeaderView = self.createTableHeader()
             }
         }).resume()
@@ -102,8 +110,27 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     func createTableHeader() -> UIView {
         let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.size.width, height: view.frame.size.width))
-        headerView.backgroundColor = .blue
+        headerView.backgroundColor = UIColor(red: 45/255.0, green: 144/255.0, blue: 228/255.0, alpha: 1.0)
         
+   
+        
+        let locationLabel = UILabel( frame: CGRect(x: 10, y: 60, width: view.frame.size.width-20, height: headerView.frame.size.height/5))
+        let summaryLabel = UILabel(frame: CGRect(x: 10, y: 70+locationLabel.frame.size.height, width: view.frame.size.width-20, height: headerView.frame.size.height/5))
+        let tempLabel = UILabel(frame: CGRect(x: 10, y: 70+locationLabel.frame.size.height+summaryLabel.frame.size.height, width: view.frame.size.width-20, height: headerView.frame.size.height/2))
+        
+        headerView.addSubview(locationLabel)
+        headerView.addSubview(summaryLabel)
+        headerView.addSubview(tempLabel)
+        
+        locationLabel.textAlignment = .center
+        summaryLabel.textAlignment = .center
+        tempLabel.textAlignment = .center
+        
+        tempLabel.text = "\(self.currentWeather?.temp ?? 000)°C"
+        tempLabel.font = UIFont(name: "Helvetica-bold", size: 32)
+        
+        summaryLabel.text = "\(self.currentWeatherCondition)"
+        locationLabel.text = "Current Location"
         
         return headerView
     }
@@ -117,6 +144,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: WeatherTableViewCell.identifier, for: indexPath) as! WeatherTableViewCell
+        cell.backgroundColor = UIColor(red: 45/255.0, green: 144/255.0, blue: 228/255.0, alpha: 1.0)
         if indexPath.row < models.count {
             cell.configure(with: models[indexPath.row])
         }
